@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车</title>
+    <script src="vue.js"></script>
+    <style>
+        * {
+            margin: 0 auto;
+            padding: 0;
+            list-style: none;
+        }
+        .shopCar {
+            width: 400px;
+            border: 2px solid skyblue;
+            text-align: center;
+        }
+        .shop-title {
+            height: 30px;
+            line-height: 30px;
+            background-color: skyblue;
+            margin: 0;
+            list-style: none;
+        }
+        .line {
+            display: flex;
+            justify-content: space-around;
+        }
+        .line input {
+            width: 30px;
+        }
+        .line span:first-child {
+            width: 150px;
+            overflow: hidden;
+        }
+        .line button {
+            width: 20px;
+            border: 0;
+            outline: none;
+            background-color: skyblue;
+        }
+        .line button:hover {
+            background-color: rgba(243, 110, 22, 0.8);
+        }
+        span .btn3 {
+            background-color: white;
+            color: red;
+            font-size: 20px;
+        }
+        span .btn3:hover {
+            color: orange;
+            background-color: white;
+        }
+        .shop-bottom {
+            background-color: orange;
+            height: 30px;
+            line-height: 30px;
+        }
+        .shop-bottom button {
+            background-color: red;
+            border: none;
+            outline: none;
+            width: 50px;
+            height: 28px;
+            margin-right: 10px;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="shopCar">
+        <shop-title class="shop-title"></shop-title>
+        <shop-main :list='list' class="shop-main" @delete-div='deleteDiv' @addd='add' @dell='del' @change-num='changeNum'></shop-main>
+        <shop-bottom :list='list' class="shop-bottom"></shop-bottom>
+    </div>
+    <script>
+        /*
+            购物车demo
+        */
+        //购物车标题
+        Vue.component('shop-title',{
+            data: function(){
+                return {
+                    msg: '我的购物车'
+                }
+            },
+            template: `
+            <div>
+                <p>{{msg}}</p>
+            </div>
+            `
+        });
+        //购物车主体
+        Vue.component('shop-main',{
+            props: ['list'],
+            template: `
+            <div>
+                <div v-for='item in list' class='line'>
+                    <span>{{item.name}}</span>
+                    <span>
+                        <button @click='del(item.id)'>-</button>
+                        <input type="text" :value='item.num' @blur='changeNum(item.id,$event)'>
+                        <button @click='add(item.id)'>+</button>
+                    </span>
+                    <span><button class='btn3' @click='delDiv(item.id)'>X</button></span>
+                </div>
+            </div>
+            `,
+            methods: {
+                //组件中不修改list内容，交给父组件修改数据
+                add: function(id){
+                    this.$emit('addd',id);
+                },
+                del: function(id){
+                    this.$emit('dell',id);
+                },
+                delDiv: function(id){
+                    this.$emit('delete-div',id);
+                },
+                changeNum: function(id,event){
+                    //event.target.value 获取当前内容
+                    this.$emit('change-num',id,event.target.value);
+                }
+            }
+        });
+        //购物车结算
+        Vue.component('shop-bottom',{
+            props: ['list'],
+            template: `
+            <div>
+                <span>总价：{{total}}</span>
+                <button>结算</button>
+            </div>
+            `,
+            computed: {
+                //计算总价
+                total: function(){
+                    var t = 0;
+                    this.list.forEach(item => {
+                        t += item.price * item.num;
+                    });
+                    return t;
+                }
+            }
+        });
+        var app = new Vue({
+            el: '#app',
+            data: {
+                list: [{
+                    id: 1,
+                    name: '洗衣机',
+                    price: 2999,
+                    num: 1
+                },{
+                    id: 2,
+                    name: '液晶电视',
+                    price: 5999,
+                    num: 1
+                },{
+                    id: 3,
+                    name: '台灯',
+                    price: 199,
+                    num: 2
+                },{
+                    id: 4,
+                    name: '电热水壶',
+                    price: 88,
+                    num: 3
+                },{
+                    id: 5,
+                    name: '吹风机',
+                    price: 58,
+                    num: 1
+                }]
+            },
+            methods: {
+                //删除商品
+                deleteDiv: function(id){
+                    var index = this.list.findIndex(item=>{
+                        item.id == id;
+                    });
+                    this.list.splice(index,1);
+                },
+                //添加件数
+                add: function(id){
+                    if(this.list[id-1].num < 99){
+                        this.list[id-1].num++;
+                    } 
+                },
+                //减少件数
+                del: function(id){
+                    if(this.list[id-1].num > 1){
+                        this.list[id-1].num--;
+                    } 
+                },
+                //更改件数
+                changeNum: function(id,val){
+                    if(val > 0 && val <100){
+                        this.list[id-1].num = val;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
